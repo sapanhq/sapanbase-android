@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "helpbento-android"
+rootProject.name = "sapanbase-android"
 
-include(":helpbento-sdk")
+include(":sapanbase-sdk")

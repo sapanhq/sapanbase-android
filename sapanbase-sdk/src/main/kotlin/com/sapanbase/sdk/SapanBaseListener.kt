@@ -1,11 +1,11 @@
-package co.helpbento.sdk
+package com.sapanbase.sdk
 
 /**
- * Callbacks for HelpBento chat widget events. All methods are invoked on the
+ * Callbacks for SapanBase chat widget events. All methods are invoked on the
  * main thread and have no-op default implementations, so implementors only
  * override the events they care about.
  */
-interface HelpBentoListener {
+interface SapanBaseListener {
     /** The chat panel was opened. */
     fun onOpen() {}
 

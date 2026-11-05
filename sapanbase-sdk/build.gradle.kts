@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "co.helpbento.sdk"
+    namespace = "com.sapanbase.sdk"
     compileSdk = 35
 
     defaultConfig {
@@ -33,9 +33,9 @@ android {
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.github.BentoSoftware"
-            artifactId = "helpbento-android"
-            version = "0.1.0"
+            groupId = "com.github.sapanhq"
+            artifactId = "sapanbase-android"
+            version = "0.2.0"
             afterEvaluate {
                 from(components["release"])
             }

@@ -1,10 +1,10 @@
-# helpbento-android
+# sapanbase-android
 
-HelpBento AI chat widget for native Android apps.
+SapanBase AI chat widget for native Android apps.
 
-This SDK renders **no native chat UI**. `HelpBento.open()` launches a full-screen Activity
+This SDK renders **no native chat UI**. `SapanBase.open()` launches a full-screen Activity
 containing a WebView that loads the same `widget.js` that powers the JavaScript SDK and the
-[Capacitor plugin](https://github.com/BentoSoftware/helpbento-capacitor). One UI source of truth: widget fixes and new features ship
+[Capacitor plugin](https://github.com/sapanhq/sapanbase-capacitor). One UI source of truth: widget fixes and new features ship
 server-side with no SDK release required.
 
 ## Install
@@ -25,7 +25,7 @@ Then add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.BentoSoftware:helpbento-android:0.1.0")
+    implementation("com.github.sapanhq:sapanbase-android:0.2.0")
 }
 ```
 
@@ -37,16 +37,16 @@ Initialize once, e.g. in your `Application` class:
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        HelpBento.init(this, companyId = "YOUR_COMPANY_ID")
+        SapanBase.init(this, companyId = "YOUR_COMPANY_ID")
     }
 }
 ```
 
 Identify the logged-in user after login (the HMAC is generated on **your** server — see
-the HelpBento widget integration guide):
+the SapanBase widget integration guide):
 
 ```kotlin
-HelpBento.identify(
+SapanBase.identify(
     userId = user.id,
     email = user.email,
     name = user.name,
@@ -58,14 +58,14 @@ Open the chat from a Help button:
 
 ```kotlin
 findViewById<Button>(R.id.helpButton).setOnClickListener {
-    HelpBento.open(this)
+    SapanBase.open(this)
 }
 ```
 
 On logout:
 
 ```kotlin
-HelpBento.clearUser()
+SapanBase.clearUser()
 ```
 
 ## API
@@ -79,10 +79,10 @@ HelpBento.clearUser()
 | `close()` | Close the chat if it's currently showing. |
 | `destroy()` | Full teardown; `init()` may be called again. |
 | `isOpen` | Whether the chat Activity is currently visible. |
-| `setListener(listener)` | Set (or clear) the `HelpBentoListener` notified of chat events. |
+| `setListener(listener)` | Set (or clear) the `SapanBaseListener` notified of chat events. |
 
 ```kotlin
-HelpBento.setListener(object : HelpBentoListener {
+SapanBase.setListener(object : SapanBaseListener {
     override fun onOpen() { /* ... */ }
     override fun onClose() { /* ... */ }
     override fun onMessageReceived(content: String) { /* assistant replied */ }
@@ -93,7 +93,7 @@ HelpBento.setListener(object : HelpBentoListener {
 ## Your own support form
 
 To send a native in-app support form (e.g. title, reason dropdown, details)
-to the HelpBento inbox, post it from **your backend** to
+to the SapanBase inbox, post it from **your backend** to
 `POST /v1/support-requests` with an API key, passing the signed-in user's
 `userId` and your form answers as `customFields`. The request shows in the
 inbox tied to the verified user. There's no SDK method for this: the API key
@@ -110,5 +110,5 @@ the allowlist empty if you ship the widget in this SDK.
 No system Gradle needed — use the wrapper:
 
 ```bash
-./gradlew :helpbento-sdk:assembleRelease
+./gradlew :sapanbase-sdk:assembleRelease
 ```

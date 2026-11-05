@@ -1,11 +1,11 @@
-package co.helpbento.sdk
+package com.sapanbase.sdk
 
 import android.content.Context
 import android.content.Intent
 import java.lang.ref.WeakReference
 
-/** Identity captured by [HelpBento.identify], reapplied to each chat page load. */
-internal data class HelpBentoIdentity(
+/** Identity captured by [SapanBase.identify], reapplied to each chat page load. */
+internal data class SapanBaseIdentity(
     val userId: String,
     val email: String?,
     val name: String?,
@@ -13,10 +13,10 @@ internal data class HelpBentoIdentity(
 )
 
 /**
- * Public entry point for the HelpBento Android SDK.
+ * Public entry point for the SapanBase Android SDK.
  *
- * The SDK renders no native chat UI: [open] launches a full-screen [HelpBentoChatActivity]
- * containing a WebView that loads the HelpBento web chat widget. All UI updates ship
+ * The SDK renders no native chat UI: [open] launches a full-screen [SapanBaseChatActivity]
+ * containing a WebView that loads the SapanBase web chat widget. All UI updates ship
  * server-side with no SDK release required.
  *
  * [init] must be called once (e.g. from [android.app.Application.onCreate]) before any other
@@ -24,9 +24,9 @@ internal data class HelpBentoIdentity(
  * chat page finishes loading, or while it is showing — the identity is queued and (re)applied
  * to every chat page load.
  */
-object HelpBento {
+object SapanBase {
 
-    internal const val DEFAULT_SCRIPT_URL = "https://app.helpbento.com/widget.js"
+    internal const val DEFAULT_SCRIPT_URL = "https://app.sapanbase.com/widget.js"
 
     internal var companyId: String? = null
         private set
@@ -36,16 +36,16 @@ object HelpBento {
         private set
 
     private var appContext: Context? = null
-    private var listener: HelpBentoListener? = null
-    private var pendingIdentity: HelpBentoIdentity? = null
-    private var activityRef: WeakReference<HelpBentoChatActivity>? = null
+    private var listener: SapanBaseListener? = null
+    private var pendingIdentity: SapanBaseIdentity? = null
+    private var activityRef: WeakReference<SapanBaseChatActivity>? = null
     private var visible = false
 
     /**
      * Configure the SDK. Must be called before [identify], [open], or [clearUser].
      *
      * @param context any app context; only [Context.getApplicationContext] is retained
-     * @param companyId your HelpBento company ID (Settings > Widget Embed)
+     * @param companyId your SapanBase company ID (Settings > Widget Embed)
      * @param agentId target a specific support agent; defaults to the company's default agent
      * @param scriptUrl override where widget.js loads from. Defaults to the production URL.
      *   Override only for local development against the Firebase emulators — the widget derives
@@ -55,7 +55,7 @@ object HelpBento {
     @JvmStatic
     @JvmOverloads
     fun init(context: Context, companyId: String, agentId: String? = null, scriptUrl: String? = null) {
-        require(companyId.isNotBlank()) { "HelpBento.init: companyId is required" }
+        require(companyId.isNotBlank()) { "SapanBase.init: companyId is required" }
         this.appContext = context.applicationContext
         this.companyId = companyId
         this.agentId = agentId
@@ -76,8 +76,8 @@ object HelpBento {
     @JvmStatic
     @JvmOverloads
     fun identify(userId: String, email: String? = null, name: String? = null, hmac: String? = null) {
-        check(companyId != null) { "HelpBento.identify: call init() first" }
-        pendingIdentity = HelpBentoIdentity(userId, email, name, hmac)
+        check(companyId != null) { "SapanBase.identify: call init() first" }
+        pendingIdentity = SapanBaseIdentity(userId, email, name, hmac)
         activityRef?.get()?.onIdentityChanged()
     }
 
@@ -89,13 +89,13 @@ object HelpBento {
     }
 
     /**
-     * Open the chat: starts [HelpBentoChatActivity], which loads the widget and opens its
+     * Open the chat: starts [SapanBaseChatActivity], which loads the widget and opens its
      * panel as soon as it is ready.
      */
     @JvmStatic
     fun open(context: Context) {
-        checkNotNull(companyId) { "HelpBento.open: call init() first" }
-        val intent = Intent(context, HelpBentoChatActivity::class.java)
+        checkNotNull(companyId) { "SapanBase.open: call init() first" }
+        val intent = Intent(context, SapanBaseChatActivity::class.java)
         if (context !is android.app.Activity) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
@@ -129,17 +129,17 @@ object HelpBento {
 
     /** Set (or clear, with `null`) the listener notified of chat events. */
     @JvmStatic
-    fun setListener(listener: HelpBentoListener?) {
+    fun setListener(listener: SapanBaseListener?) {
         this.listener = listener
     }
 
-    internal fun pendingIdentity(): HelpBentoIdentity? = pendingIdentity
+    internal fun pendingIdentity(): SapanBaseIdentity? = pendingIdentity
 
-    internal fun attachActivity(activity: HelpBentoChatActivity) {
+    internal fun attachActivity(activity: SapanBaseChatActivity) {
         activityRef = WeakReference(activity)
     }
 
-    internal fun detachActivity(activity: HelpBentoChatActivity) {
+    internal fun detachActivity(activity: SapanBaseChatActivity) {
         if (activityRef?.get() === activity) {
             activityRef = null
         }

@@ -1,4 +1,4 @@
-package co.helpbento.sdk
+package com.sapanbase.sdk
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -21,12 +21,12 @@ import org.json.JSONObject
 import java.net.URL
 
 /**
- * Internal Activity hosting the HelpBento chat. Loads a small generated HTML page that pulls in
+ * Internal Activity hosting the SapanBase chat. Loads a small generated HTML page that pulls in
  * widget.js and drives it through a JS bridge — this Activity renders no chat UI of its own.
  *
- * Not part of the public API; use [HelpBento.open] to show it.
+ * Not part of the public API; use [SapanBase.open] to show it.
  */
-class HelpBentoChatActivity : Activity() {
+class SapanBaseChatActivity : Activity() {
 
     private lateinit var webView: WebView
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -40,9 +40,9 @@ class HelpBentoChatActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val companyId = HelpBento.companyId
+        val companyId = SapanBase.companyId
         if (companyId == null) {
-            // HelpBento.init() was never called; nothing to show.
+            // SapanBase.init() was never called; nothing to show.
             finish()
             return
         }
@@ -53,20 +53,20 @@ class HelpBentoChatActivity : Activity() {
         setContentView(webView)
         applyWindowInsets(webView)
 
-        HelpBento.attachActivity(this)
+        SapanBase.attachActivity(this)
 
-        val html = buildHtml(companyId, HelpBento.agentId, HelpBento.scriptUrl)
-        webView.loadDataWithBaseURL(originOf(HelpBento.scriptUrl), html, "text/html", "utf-8", null)
+        val html = buildHtml(companyId, SapanBase.agentId, SapanBase.scriptUrl)
+        webView.loadDataWithBaseURL(originOf(SapanBase.scriptUrl), html, "text/html", "utf-8", null)
     }
 
     override fun onStart() {
         super.onStart()
-        HelpBento.setVisible(true)
+        SapanBase.setVisible(true)
     }
 
     override fun onStop() {
         super.onStop()
-        HelpBento.setVisible(false)
+        SapanBase.setVisible(false)
     }
 
     @Deprecated("Deprecated in Java")
@@ -79,7 +79,7 @@ class HelpBentoChatActivity : Activity() {
         // Covers teardown paths that don't go through requestClose() (e.g. the task being
         // removed from Recents), so onClose still fires exactly once.
         handleCloseEvent()
-        HelpBento.detachActivity(this)
+        SapanBase.detachActivity(this)
         webView.stopLoading()
         webView.destroy()
         super.onDestroy()
@@ -87,20 +87,20 @@ class HelpBentoChatActivity : Activity() {
 
     /** Ask the widget to close itself; falls back to an immediate finish if the page never loaded. */
     internal fun requestClose() {
-        // Callable from any thread via HelpBento.close(); evaluateJavascript is main-thread-only.
+        // Callable from any thread via SapanBase.close(); evaluateJavascript is main-thread-only.
         mainHandler.post {
             if (isFinishing || isDestroyed) return@post
             if (pageReady) {
-                webView.evaluateJavascript("window.HelpBento && window.HelpBento.close();", null)
+                webView.evaluateJavascript("window.SapanBase && window.SapanBase.close();", null)
             } else {
                 handleCloseEvent()
             }
         }
     }
 
-    /** Called by [HelpBento] whenever identify()/clearUser() is invoked while this Activity is live. */
+    /** Called by [SapanBase] whenever identify()/clearUser() is invoked while this Activity is live. */
     internal fun onIdentityChanged() {
-        // Callable from any thread via HelpBento.identify()/clearUser().
+        // Callable from any thread via SapanBase.identify()/clearUser().
         mainHandler.post {
             if (isFinishing || isDestroyed) return@post
             if (pageReady) applyIdentity()
@@ -110,7 +110,7 @@ class HelpBentoChatActivity : Activity() {
     private fun handleCloseEvent() {
         if (closeNotified) return
         closeNotified = true
-        HelpBento.notifyClose()
+        SapanBase.notifyClose()
         finish()
     }
 
@@ -120,9 +120,9 @@ class HelpBentoChatActivity : Activity() {
     }
 
     private fun applyIdentity() {
-        val identity = HelpBento.pendingIdentity()
+        val identity = SapanBase.pendingIdentity()
         val script = if (identity == null) {
-            "window.HelpBento && window.HelpBento.clearUser();"
+            "window.SapanBase && window.SapanBase.clearUser();"
         } else {
             val payload = JSONObject().apply {
                 put("userId", identity.userId)
@@ -130,7 +130,7 @@ class HelpBentoChatActivity : Activity() {
                 put("name", identity.name)
                 put("hmac", identity.hmac)
             }
-            "window.HelpBento && window.HelpBento.identify(${payload});"
+            "window.SapanBase && window.SapanBase.identify(${payload});"
         }
         webView.evaluateJavascript(script, null)
     }
@@ -140,7 +140,7 @@ class HelpBentoChatActivity : Activity() {
         view.settings.javaScriptEnabled = true
         // The widget persists its visitor id in localStorage — it must survive app restarts.
         view.settings.domStorageEnabled = true
-        view.addJavascriptInterface(HelpBentoBridge(), "HelpBentoBridge")
+        view.addJavascriptInterface(SapanBaseBridge(), "SapanBaseBridge")
         view.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 // Only the initial loadDataWithBaseURL content renders in the webview; any
@@ -156,7 +156,7 @@ class HelpBentoChatActivity : Activity() {
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 super.onReceivedError(view, request, error)
                 if (request.isForMainFrame) {
-                    HelpBento.notifyError("Failed to load chat: ${error.description}")
+                    SapanBase.notifyError("Failed to load chat: ${error.description}")
                 }
             }
         }
@@ -293,18 +293,18 @@ class HelpBentoChatActivity : Activity() {
                   function forward(eventName) {
                     return function (payload) {
                       try {
-                        HelpBentoBridge.postMessage(JSON.stringify({ event: eventName, payload: payload || null }));
+                        SapanBaseBridge.postMessage(JSON.stringify({ event: eventName, payload: payload || null }));
                       } catch (e) {}
                     };
                   }
-                  window.HelpBento.on('ready', forward('ready'));
-                  window.HelpBento.on('open', forward('open'));
-                  window.HelpBento.on('close', forward('close'));
-                  window.HelpBento.on('message', forward('message'));
-                  window.HelpBento.on('error', forward('error'));
+                  window.SapanBase.on('ready', forward('ready'));
+                  window.SapanBase.on('open', forward('open'));
+                  window.SapanBase.on('close', forward('close'));
+                  window.SapanBase.on('message', forward('message'));
+                  window.SapanBase.on('error', forward('error'));
                   // The Activity IS the chat panel, so open it as soon as it can render.
-                  window.HelpBento.on('ready', function () { window.HelpBento.open(); });
-                  window.HelpBento.init({
+                  window.SapanBase.on('ready', function () { window.SapanBase.open(); });
+                  window.SapanBase.init({
                     companyId: $companyIdJson,
                     agentId: $agentIdJson,
                     platform: 'android',
@@ -319,7 +319,7 @@ class HelpBentoChatActivity : Activity() {
     }
 
     /** JS bridge target. Methods run on a background thread — dispatch to the main thread. */
-    private inner class HelpBentoBridge {
+    private inner class SapanBaseBridge {
         @JavascriptInterface
         fun postMessage(json: String) {
             mainHandler.post { handleBridgeMessage(json) }
@@ -335,10 +335,10 @@ class HelpBentoChatActivity : Activity() {
         val payload = message.optJSONObject("payload")
         when (message.optString("event")) {
             "ready" -> onWidgetReady()
-            "open" -> HelpBento.notifyOpen()
+            "open" -> SapanBase.notifyOpen()
             "close" -> handleCloseEvent()
-            "message" -> HelpBento.notifyMessage(payload?.optString("content").orEmpty())
-            "error" -> HelpBento.notifyError(payload?.optString("message") ?: "Unknown error")
+            "message" -> SapanBase.notifyMessage(payload?.optString("content").orEmpty())
+            "error" -> SapanBase.notifyError(payload?.optString("message") ?: "Unknown error")
         }
     }
 }

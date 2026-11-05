@@ -4,7 +4,7 @@
 
     <application>
         <activity
-            android:name=".HelpBentoChatActivity"
+            android:name=".SapanBaseChatActivity"
             android:exported="false"
             android:theme="@android:style/Theme.NoTitleBar"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|uiMode"
